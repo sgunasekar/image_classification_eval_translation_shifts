@@ -1,0 +1,8 @@
+torch>=1.8.0
+torchvision 
+timm=0.6.7
+
+## optional
+antialiased_cnns # requried when training on antialised cnns
+tensorboard # required when using tensorboard
+tensorboard-plugin-profile # required when using tensorboard
