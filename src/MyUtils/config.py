@@ -11,7 +11,7 @@ default_cfg={
         "im_dim": 32,
         "num_classes":10,
         "in_channels":3,
-        "root": os.path.join("..","..","..","data","CIFAR10"),
+        "root": os.path.join("data","CIFAR10"),
         "mean": np.array([0.4914, 0.4822, 0.4465]),
         "std": np.array([0.2470, 0.2435, 0.2616]),
     },
@@ -20,7 +20,7 @@ default_cfg={
         "im_dim": 32,
         "num_classes": 100,
         "in_channels": 3,
-        "root": os.path.join("..","..","..","data","CIFAR100"),
+        "root": os.path.join("data","CIFAR100"),
         "mean": np.array([0.5071, 0.4866, 0.4409]),
         "std": np.array([0.2673, 0.2564, 0.2762]),
     },
@@ -29,7 +29,7 @@ default_cfg={
         "im_dim": 64,
         "num_classes":200,
         "in_channels":3,
-        "root": os.path.join("..","..","..","data","TINYIMAGENET"),
+        "root": os.path.join("data","TINYIMAGENET"),
         "mean": np.array([0.4802, 0.4481, 0.3975]),
         "std": np.array([0.2770, 0.2691, 0.2821]),        
     },
@@ -38,13 +38,13 @@ default_cfg={
         "im_dim": 224,
         "num_classes": 1000,
         "in_channels":3,
-        "root": os.path.join("..","..","..","..","data","IMAGENET"),
+        "root": os.path.join("data","IMAGENET"),
         "mean": np.array([0.485, 0.456, 0.406]),
         "std": np.array([0.229, 0.224, 0.225]),
     },
     "data": {
         "basic_augmentation": False,
-        "auto_augmentation":False,
+        "advanced_augmentation":False,
         "padded":False,
         "centercrop": False,
         "translation_augmentation": 4,
@@ -52,7 +52,7 @@ default_cfg={
     },
     "training": {
         "resume": False,
-        "resume_checkpoint": os.path.join("..","..","..","save","CIFAR10",'checkpoint.pt'),
+        "resume_checkpoint": os.path.join("save","CIFAR10",'checkpoint.pt'),
         "opt": 'sgd',
         "epochs": 200,
         "print_freq": 5000,
@@ -62,7 +62,7 @@ default_cfg={
         "lr": 0.1,
         "momentum": 0.9,
         "weight_decay": 5e-4,
-        "save_dir": os.path.join("..","..","..","save")
+        "save_dir": os.path.join("save")
     },
     "scheduler": {}
 }
@@ -86,9 +86,9 @@ def parser_add_arguments(parser):
     parser.add_argument('--no-basic-augmentation', default=True, action='store_false', dest='basic_augmentation',help='flag to not use basic augmentation')
     parser.set_defaults(basic_augmentation=True)
     parser.add_argument('--translation_augmentation', default=4, type=int,  help='padding to use with random crop if data augmentation is true (default: 4)')
-    parser.add_argument('--auto-augmentation', '--auto-aug', default=False, action='store_true',  help='flag to use auto augmentation (default: False)')
+    parser.add_argument('--advanced-augmentation', '--auto-autmentation', '--auto-aug', default=False, action='store_true',  help='flag to use auto augmentation (default: False)')
     parser.add_argument('--standard-augmentation', '--std-aug', default=False, action='store_true',  help='flag to use standard randomresizecrop augmentation used for testing on IMAGENET only (default: False)')
-    parser.add_argument('--reprob', type=float, default=0.25,  help='Random erase prob. Note: Used only when auto_augmentation is True, else ignored. (default: 0.25)')
+    parser.add_argument('--reprob', type=float, default=0.25,  help='Random erase prob. Note: Used only when advanced_augmentation is True, else ignored. (default: 0.25)')
 
     ## Mixup params used by timm.data.Mixup
     parser.add_argument('--use-mixup', default=False, action='store_true',  help='flag to use mixup/cutmix  (default: False)')
