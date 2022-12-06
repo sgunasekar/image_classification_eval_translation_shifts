@@ -5,8 +5,6 @@ vgg_prefixes = ("vgg")
 mlp_prefixes = ("mixer","resmlp")
 resnet_prefixes = ("resnet", "resnext", "wide_resnet", "preact")
 antialiased_resnet_prefixes = ("antialiased_resnet", "antialiased_resnext", "antialiased_wide_resnet")
-resnet_prefixes = ("resnet", "resnext", "wide_resnet", "preact")
-regnet_prefixes = ("regnet")
 vit_prefixes = ("deit", "vit", "cait")
 
 def get_model_cfg(args):
@@ -71,21 +69,6 @@ def get_model_cfg(args):
 
         model_cfg['model_name'] = model_name
 
-    elif model_name.startswith(regnet_prefixes):
-        
-        from models.regnet import RegNet, default_regnet_cfg, layers_regnet_cfg
-        Net = RegNet
-        model_cfg = default_regnet_cfg.copy()
-        layers_cfg = layers_regnet_cfg
-
-        if model_name in layers_cfg.keys():
-            model_cfg['layers']=layers_cfg[model_name]
-        else:
-            logging.warning(f"Model name {model_name} is not a valid key for layers_cfg. Using default regnety_040 layer config")
-            model_name = 'regnety_040'
-
-        model_cfg['model_name'] = model_name
-
     elif model_name.startswith(vit_prefixes):
         
         from models.vit import ViT, default_vit_cfg, layers_vit_cfg
@@ -130,7 +113,7 @@ def get_model_cfg(args):
         return model_cfg, model_name
 
     if not(args.model.startswith(resnet_prefixes)):
-        print("Note: Ignoring groupnorm and batchnorm arguments for non-resnet models")
+        print("Note: Ignoring groupnorm and batchnorm arguments for non-resne(x)t models")
     elif args.groupnorm:
         model_cfg['groupnorm'] = True
     elif args.batchnorm:

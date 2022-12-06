@@ -21,9 +21,7 @@ default_vgg_cfg = {
         'num_classes': 10,
         'im_dim': (32,32),
         'padding_mode': 'zeros',
-        'batchnorm': False,
-        'groupnorm': False,
-        'gn_num_groups': 32,
+        'batchnorm': True,
         'dropout': 0.5,
         'resize': True,
         'layers': layers_vgg_cfg['vgg16']
@@ -81,9 +79,6 @@ class VGG(nn.Module):
             self.resize = transforms.Resize(im_dim)
 
         batchnorm = model_cfg.get('batchnorm',default_vgg_cfg['batchnorm'])
-        groupnorm = model_cfg.get('groupnorm',default_vgg_cfg['groupnorm'])
-        if groupnorm: gn_num_groups = model_cfg.get('gn_num_groups', default_vgg_cfg['gn_num_groups'])
-        normalization = batchnorm or groupnorm
 
         dropout = model_cfg.get('dropout',default_vgg_cfg['dropout'])
         padding_mode = model_cfg.get('padding_mode',default_vgg_cfg['padding_mode'])
@@ -92,7 +87,7 @@ class VGG(nn.Module):
             #[64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M','F',512,512]
             raise MissingConfiguration("Required key 'layers' is missing in model_cfg")
 
-        print("Model: ", model_cfg['layers'], " batchnorm: ", batchnorm, " groupnorm: ", groupnorm, " dropout: ",dropout, " in_channels: ", in_channels, " im_dim: ", im_dim, " padding_mode: ", padding_mode)
+        print("Model: ", model_cfg['layers'], " batchnorm: ", batchnorm, " dropout: ",dropout, " in_channels: ", in_channels, " im_dim: ", im_dim, " padding_mode: ", padding_mode)
 
         layers = []
         layer_type = 'conv'
@@ -118,10 +113,8 @@ class VGG(nn.Module):
                 layer_type='conv'
             else:
                 if layer_type=='conv':
-                    conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1, padding_mode=padding_mode,bias=(not normalization))
-                    if groupnorm:
-                        layers += [conv2d, nn.GroupNorm(gn_num_groups,v), nn.ReLU(inplace=True)]
-                    elif batchnorm:
+                    conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1, padding_mode=padding_mode,bias=(not batchnorm))
+                    if batchnorm:
                         layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
                     else:
                         layers += [conv2d, nn.ReLU(inplace=True)]
