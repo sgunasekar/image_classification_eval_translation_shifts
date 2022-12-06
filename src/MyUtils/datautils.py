@@ -121,20 +121,20 @@ def get_data_cfg(suffix, args):
         data_cfg['transform'] = transforms.Compose(data_pad_transforms+data_transforms)
 
 
-    if args.basic_augmentation or args.auto_augmentation:
+    if args.basic_augmentation or args.advanced_augmentation:
         if args.basic_augmentation:
             basic_data_augmentation_transforms = [transforms.RandomCrop(im_dim, padding=randcrop_padding, fill=fill), transforms.RandomHorizontalFlip()]
         else:
             basic_data_augmentation_transforms = [transforms.RandomHorizontalFlip()]
             aa_config_string = aa_config_string+'-sh0'
 
-        if args.auto_augmentation:
+        if args.advanced_augmentation:
             data_cfg['aa_config_string'] = aa_config_string
             aa_params = dict(translate_const=int(im_dim * 0.45), img_mean=tuple([min(255, round(255 * channel_mean)) for channel_mean in mean]))
-            auto_augmentation_transforms = [rand_augment_transform(aa_config_string, aa_params)]
+            rand_augmentation_transforms = [rand_augment_transform(aa_config_string, aa_params)]
             # [transforms.AutoAugment(transforms.autoaugment.AutoAugmentPolicy.CIFAR10)]
             re_transform = [transforms.RandomErasing(p=args.reprob, value='random')] if args.reprob > 0.0 else []
-            transforms_list = auto_augmentation_transforms\
+            transforms_list = rand_augmentation_transforms\
                 + data_pad_transforms \
                 + basic_data_augmentation_transforms\
                 + data_transforms\
@@ -183,7 +183,7 @@ def get_imagenet_data_cfg(suffix, args):
     fill = tuple([min(255, int(round(255 * x))) for x in mean])   
     
 
-    if args.basic_augmentation or args.auto_augmentation or args.standard_augmentation:
+    if args.basic_augmentation or args.advanced_augmentation or args.standard_augmentation:
         if args.standard_augmentation:
             scale = tuple((0.08, 1.0))  # default imagenet scale range
             ratio = tuple((3./4., 4./3.))  # default imagenet ratio range
@@ -195,21 +195,21 @@ def get_imagenet_data_cfg(suffix, args):
             basic_data_augmentation_transforms = [transforms.CenterCrop(im_dim), transforms.RandomHorizontalFlip()]
             aa_config_string = aa_config_string+'-sh0'
 
-        if args.auto_augmentation:
+        if args.advanced_augmentation:
             data_cfg['aa_config_string'] = aa_config_string
             aa_params = dict(translate_const=int(im_dim * 0.45), img_mean=tuple([min(255, round(255 * channel_mean)) for channel_mean in mean]))
-            auto_augmentation_transforms = [rand_augment_transform(aa_config_string, aa_params)]
+            rand_augmentation_transforms = [rand_augment_transform(aa_config_string, aa_params)]
             # [transforms.AutoAugment(transforms.autoaugment.AutoAugmentPolicy.CIFAR10)]
             re_transform = [transforms.RandomErasing(p=args.reprob, value='random')] if args.reprob > 0.0 else []            
             suffix = suffix +"_AA" if args.basic_augmentation else suffix +"_AAtr0"
 
         else:
-            auto_augmentation_transforms = []
+            rand_augmentation_transforms = []
             re_transform = []
             suffix = suffix +"_DA"
             
         transforms_list = train_resize_transforms\
-            + auto_augmentation_transforms\
+            + rand_augmentation_transforms\
             + basic_data_augmentation_transforms\
             + data_transforms\
             + re_transform
