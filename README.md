@@ -28,8 +28,8 @@ To use in non-distributed mode, simply use `python main.py [--arg1 --arg2 --arg3
 - Use the following commanline options for the different data augmentation pipelines
   - No data augmentation (None): `--no-basic-augmentation`
   - Basic augmentation (BA): `--basic-augmentation`
-  - Advanced augmentation (AA): `--basic-augmentation --auto-augmentation --use-mixup`
-  - AA (no tr): `--no-basic-augmentation --auto-augmentation --use-mixup`
+  - Advanced augmentation (AA): `--basic-augmentation --advanced-augmentation --use-mixup`
+  - AA (no tr): `--no-basic-augmentation --advanced-augmentation --use-mixup`
 - Check MyUtils/config.py for full list options that can be passed as command line arguments and their defaults
 - Additional setup: Edit the paths for `default_cfg['[dataset_name]']['root']` and `default_cfg['training']['save']` options in the default_cgfs dictionary to point to the dataset root director and save directory for saving results.
 
