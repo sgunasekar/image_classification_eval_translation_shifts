@@ -133,7 +133,7 @@ def parser_add_arguments(parser):
     parser.add_argument('--sched', default='cosine', type=str, help='LR scheduler (default: "cosine")')
     parser.add_argument('--warmup-lr', type=float, default=1e-6, help='warmup learning rate (default: 1e-6)')
     parser.add_argument('--min-lr', type=float, default=1e-5, help='lower lr bound for cyclic schedulers that hit 0 (default: 1e-5)')
-    parser.add_argument('--warmup-epochs', type=int, default=20, help='epochs to warmup LR, if scheduler supports (default: 20)')
+    parser.add_argument('--warmup-epochs', type=int, default=20, help='epochs to warmup LR, if scheduler supports (default: 20 for non-imagenet, for imagenet, warmup is fixed to 1 epoch! )')
     parser.add_argument('--cooldown-epochs', type=int, default=0, help='epochs to cooldown LR at min_lr, after cyclic schedule ends (default: 0)')
     parser.add_argument('--decay-epochs', default = 100000, type=float, help='epoch interval to decay LR for step-like schedules (default: args.epochs)')
     parser.add_argument('--decay-rate', '--dr', default=0, type=float, help='LR decay rate for step-like schedules (default: 0.1)')

@@ -51,6 +51,10 @@ def main(args):
     model_cfg['im_dim'] = data_cfg['im_dim']
     model_cfg['num_classes'] = data_cfg['num_classes']
     model_cfg['in_channels'] = data_cfg['in_channels']
+    # Change the scheduler to use per step update
+    if dataset=='IMAGENET':
+        args.sched_on_updates = True
+        args.warmup_epochs = 1
 
     ## Process special training arguments
     train_kwargs = {}
@@ -115,7 +119,8 @@ def main(args):
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
         model_without_ddp = model.module
 
-        linear_scaled_lr = args.lr * num_tasks * args.batch_size / 512.0
+        true_batchsize = args.batch_size*num_tasks
+        linear_scaled_lr = args.lr * true_batchsize / 512.0
         args.lr = linear_scaled_lr
 
         if args.repeated_aug:
@@ -131,6 +136,7 @@ def main(args):
             sampler_test = torch.utils.data.SequentialSampler(data.testset)
 
     else:
+        true_batchsize = args.batch_size
         sampler_train = torch.utils.data.RandomSampler(data.trainset)
         sampler_test = torch.utils.data.SequentialSampler(data.testset)
         model_without_ddp = model
@@ -161,7 +167,9 @@ def main(args):
     criterion.to(device) 
     
     optimizer = create_optimizer(args = args, model = model_without_ddp) ## Note: For distributed, this is ok as the synchronization happens at loss.backward() and not at optimizer.step()
-    scheduler, _ = create_scheduler(args = args, optimizer = optimizer)
+    scheduler, _ = create_scheduler(args = args, optimizer = optimizer, updates_per_epoch=len(trainloader))
+    if not(scheduler.t_in_epochs):
+        train_kwargs['scheduler'] = scheduler            
 
     print("Criterion, optimizer, scheduler")
     print(criterion, optimizer, scheduler)
@@ -220,7 +228,7 @@ def main(args):
 
         # Validation    
         m = torch.cuda.memory_allocated()
-        if dataset!='IMAGENET' or not(epoch%args.eval_epoc_freq):
+        if dataset!='IMAGENET' or not(epoch%args.eval_epoch_freq):
             with torch.no_grad():
                 epoch_test_stats = validate(testloader = testloader, model=model, criterion = nn.CrossEntropyLoss(), device=device)
             if epoch<5: print("\t Memory: validation %d --> %d" %(m,torch.cuda.memory_allocated()))
@@ -250,7 +258,8 @@ def main(args):
             print('EXITING DUE TO NAN. lr=%0.4g' %get_lr(optimizer))
             break
 
-        scheduler.step(epoch)
+        if scheduler.t_in_epochs:
+            scheduler.step(epoch)
 
     if distributed.is_main_process():
         torch.save({

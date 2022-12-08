@@ -58,7 +58,9 @@ def get_train_kwargs(train_kwargs, args, suffix):
 # before iter 52788736
 # inside iter 59868672
 # after iter 59868672
-def train_epoch(trainloader, model, optimizer, epoch, criterion, device, print_freq=100,mixup_fn=None, loss_scaler=None, clip_grad=None, SW=None):
+def train_epoch(trainloader, model, optimizer, epoch, criterion, device, print_freq=100, scheduler=None, mixup_fn=None, loss_scaler=None, clip_grad=None, SW=None):
+
+    step_number = epoch*len(trainloader)
     
     
     def train_iter(images,labels, print_mem=False, is_first_batch = False):
@@ -85,7 +87,7 @@ def train_epoch(trainloader, model, optimizer, epoch, criterion, device, print_f
             samples = unnormalize(samples)
             grid = torchvision.utils.make_grid(samples)
             SW.add_image('train images', grid, 0)
-            print("Added graph and sample images to tensorboard")
+            print("\t\t Added graph and sample images to tensorboard")
 
         with torch.cuda.amp.autocast(enabled=(loss_scaler is not None)):
             output = model(images)
@@ -153,6 +155,10 @@ def train_epoch(trainloader, model, optimizer, epoch, criterion, device, print_f
 
         if (i+1) % print_freq == 0:
             print_progress('[%d][%d/%d]' %(epoch, i+1, len(trainloader)), loss=trainloss, top1=traintop1)
+        
+        step_number = step_number + 1
+        if scheduler and not(scheduler.t_in_epochs): 
+            scheduler.step_update(step_number)
 
     # synchronize
     trainloss.synchronize_between_processes()

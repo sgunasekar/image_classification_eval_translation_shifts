@@ -160,7 +160,7 @@ def get_imagenet_data_cfg(suffix, args):
     mean = data_cfg['mean']
     std = data_cfg['std']
     aa_config_string = 'rand-m9-n3-mstd0.5-inc1-tr0'
-    max_im_dim = im_dim+int(0.5*im_dim) # 336
+    max_im_dim = im_dim+int(0.5*im_dim) if args.padded else im_dim # 336
     randcrop_padding = args.translation_augmentation
     rand_crop_dim = im_dim+2*randcrop_padding
  
@@ -197,9 +197,8 @@ def get_imagenet_data_cfg(suffix, args):
 
         if args.advanced_augmentation:
             data_cfg['aa_config_string'] = aa_config_string
-            aa_params = dict(translate_const=int(im_dim * 0.45), img_mean=tuple([min(255, round(255 * channel_mean)) for channel_mean in mean]))
+            aa_params = dict(translate_const=int(im_dim * 0.45), img_mean=fill)
             rand_augmentation_transforms = [rand_augment_transform(aa_config_string, aa_params)]
-            # [transforms.AutoAugment(transforms.autoaugment.AutoAugmentPolicy.CIFAR10)]
             re_transform = [transforms.RandomErasing(p=args.reprob, value='random')] if args.reprob > 0.0 else []            
             suffix = suffix +"_AA" if args.basic_augmentation else suffix +"_AAtr0"
 
