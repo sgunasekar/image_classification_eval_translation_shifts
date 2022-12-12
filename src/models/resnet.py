@@ -368,7 +368,7 @@ class ResNet(nn.Module):
         ## Layers
         base_conv_kernel = 7 if im_dim[0]>128 else 3
         base_conv_padding = 3 if im_dim[0]>128 else 1
-        base_conv_stride = 1
+        base_conv_stride = 2 if im_dim[0]>128 else 1
         if groupnorm:
             conv0 = StdConv2d(self.in_channels, base_channel, kernel_size=base_conv_kernel, padding=base_conv_padding, stride=base_conv_stride, bias = not normalization)
         else:
