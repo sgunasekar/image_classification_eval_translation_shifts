@@ -1,6 +1,6 @@
 torch>=1.8.0
 torchvision 
-timm==0.8.0(dev)
+timm==0.8.0dev0
 
 ## optional
 antialiased_cnns # requried when training on antialised cnns

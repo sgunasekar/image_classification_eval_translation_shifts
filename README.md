@@ -36,3 +36,7 @@ To use in non-distributed mode, simply use `python main.py [--arg1 --arg2 --arg3
 
 ### Evaluation
 To evaluate on translation generalization grid, use  translation_generalization.py with the command line arguments specified in the file. Easiest way to provide trained model checkpoint file is to change the default `model_filename` declaration in the top of translation_generalization.py.
+
+### TODO
+
+- [ ] add support for ImageNet21k
