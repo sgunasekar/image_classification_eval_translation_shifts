@@ -56,7 +56,7 @@ default_cfg={
         "opt": 'sgd',
         "epochs": 200,
         "print_freq": 5000,
-        "eval_epoch_freq": 40,
+        "eval_epoch_freq": 10,
         "num_workers": 8,
         "batch_size": 128,
         "lr": 0.1,
@@ -82,12 +82,12 @@ def parser_add_arguments(parser):
     parser.add_argument('--padded', default=False, action='store_true', help="flag to train on padded image with im_dim/4 padding on each side (default: False)")
 
     ## Data augmentation args
-    parser.add_argument('--basic-augmentation', action='store_true',  dest='basic_augmentation', help='flag to use basic augmentation (default: True)')
-    parser.add_argument('--no-basic-augmentation', default=True, action='store_false', dest='basic_augmentation',help='flag to not use basic augmentation')
+    parser.add_argument('--basic-augmentation', '--ba', action='store_true',  dest='basic_augmentation', help='flag to use basic augmentation (default: True)')
+    parser.add_argument('--no-basic-augmentation', '--no-ba', default=True, action='store_false', dest='basic_augmentation', help='flag to not use basic augmentation')
     parser.set_defaults(basic_augmentation=True)
     parser.add_argument('--translation_augmentation', default=4, type=int,  help='padding to use with random crop if data augmentation is true (default: 4)')
-    parser.add_argument('--advanced-augmentation', '--auto-autmentation', '--auto-aug', default=False, action='store_true',  help='flag to use auto augmentation (default: False)')
-    parser.add_argument('--standard-augmentation', '--std-aug', default=False, action='store_true',  help='flag to use standard randomresizecrop augmentation used for testing on IMAGENET only (default: False)')
+    parser.add_argument('--advanced-augmentation', '--auto-autmentation', '--auto-aug', '--aa', dest='advanced_augmentation', default=False, action='store_true',  help='flag to use auto augmentation (default: False)')
+    parser.add_argument('--standard-augmentation', '--std-aug', '--sa', default=False, action='store_true', dest='standard_augmentation', help='flag to use standard randomresizecrop augmentation used for testing on IMAGENET only. If set to true other augmentation flags like  --ba or --aa are ignored. (default: False)')
     parser.add_argument('--reprob', type=float, default=0.25,  help='Random erase prob. Note: Used only when advanced_augmentation is True, else ignored. (default: 0.25)')
 
     ## Mixup params used by timm.data.Mixup
@@ -103,8 +103,8 @@ def parser_add_arguments(parser):
 
     ## Model args
     group2 = parser.add_mutually_exclusive_group()
-    group2.add_argument('--batchnorm', default=False, action='store_true', help='flag to use batch normalization in convnets (default: False)')
-    group2.add_argument('--groupnorm', default=False, action='store_true', help='flag to use batch normalization in convnets (default: False)')
+    group2.add_argument('--batchnorm', '--bn', default=False, action='store_true', dest='batchnorm', help='flag to use batch normalization in convnets (default: False)')
+    group2.add_argument('--groupnorm','--gn', default=False, action='store_true', dest='groupnorm', help='flag to use batch normalization in convnets (default: False)')
 
     parser.add_argument('--dropout', '--do', type=float, help='dropout rate if relevant for model (See defaults in aplicable models.default_<model>_config)')
     parser.add_argument('--drop-path', '--so', type=float, help='stochastic depth rate if relevant for model (See defaults in aplicable models.default_<model>_config)')
