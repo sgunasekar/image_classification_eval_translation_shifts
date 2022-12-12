@@ -54,7 +54,7 @@ def main(args):
     # Change the scheduler to use per step update
     if dataset=='IMAGENET':
         args.sched_on_updates = True
-        args.warmup_epochs = 1
+        args.warmup_epochs = 2
 
     ## Process special training arguments
     train_kwargs = {}
@@ -202,6 +202,7 @@ def main(args):
         ### DDP modification: within train_epoch and validate, make sure to synchronize aggregates/Average meters
         if args.distributed:
             trainloader.sampler.set_epoch(epoch)
+        epoch_validated = False
 
         m = torch.cuda.memory_allocated()
         epoch_train_stats = train_epoch(trainloader = trainloader, model = model, optimizer = optimizer, epoch=epoch, criterion = criterion, device = device, **train_kwargs)
@@ -224,13 +225,15 @@ def main(args):
             SW.add_scalar('Misc/grad_clip_count', epoch_train_stats['grad_clip_count'], epoch)
             SW.add_scalar('Misc/cuda_alloc_memory', epoch_train_stats['cuda_alloc_memory'], epoch)
 
-        for key in train_stats: train_stats[key].append(epoch_train_stats[key])
+        for key in train_stats: 
+            train_stats[key].append(epoch_train_stats[key])
 
         # Validation    
         m = torch.cuda.memory_allocated()
         if dataset!='IMAGENET' or not(epoch%args.eval_epoch_freq):
             with torch.no_grad():
                 epoch_test_stats = validate(testloader = testloader, model=model, criterion = nn.CrossEntropyLoss(), device=device)
+                epoch_validated = True
             if epoch<5: print("\t Memory: validation %d --> %d" %(m,torch.cuda.memory_allocated()))
 
             ### DDP modification: log only in main process
@@ -238,7 +241,8 @@ def main(args):
                 SW.add_scalar('Loss/Test', epoch_test_stats['loss'], epoch)
                 SW.add_scalar('Accuracy/Test', epoch_test_stats['prec1'], epoch)
 
-            for key in test_stats: test_stats[key].append(epoch_test_stats[key])
+            for key in test_stats: 
+                test_stats[key].append(epoch_test_stats[key])
 
             ### DDP modification: save only in main process
             ## save checkpoint
@@ -260,7 +264,34 @@ def main(args):
 
         if scheduler.t_in_epochs:
             scheduler.step(epoch)
+    
+    # Validate if last epoch was not validated. 
+    if not(epoch_validated):
+        with torch.no_grad():
+            epoch_test_stats = validate(testloader = testloader, model=model, criterion = nn.CrossEntropyLoss(), device=device)
+            ### DDP modification: log only in main process
+            if not(args.disable_tensorboard) and distributed.is_main_process():
+                SW.add_scalar('Loss/Test', epoch_test_stats['loss'], epoch)
+                SW.add_scalar('Accuracy/Test', epoch_test_stats['prec1'], epoch)
 
+            for key in test_stats: 
+                test_stats[key].append(epoch_test_stats[key])
+
+            ### DDP modification: save only in main process
+            ## save checkpoint
+            if (epoch_test_stats['prec1'] > best_testprec1):
+                best_testprec1 = epoch_test_stats['prec1']
+                best_testprec1_epoch = epoch
+                if distributed.is_main_process():
+                    torch.save({
+                        'epoch': epoch,
+                        'model_state_dict': model_without_ddp.state_dict(),
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'scheduler': scheduler.state_dict(),
+                        'best_testprec1': best_testprec1,
+                        }, bestepoch_file)
+    
+    # Save last epoch
     if distributed.is_main_process():
         torch.save({
             'epoch': epoch,
