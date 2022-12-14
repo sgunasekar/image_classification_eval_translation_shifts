@@ -54,7 +54,7 @@ def main(args):
     # Change the scheduler to use per step update
     if dataset=='IMAGENET':
         args.sched_on_updates = True
-        args.warmup_epochs = 2
+        args.warmup_epochs = 5
 
     ## Process special training arguments
     train_kwargs = {}
@@ -71,8 +71,8 @@ def main(args):
 
     suffix = suffix+"_se%d" %args.seed
 
-    lastepoch_file = os.path.join(output_dir,'lastepoch_%s.pt' %(suffix))
-    bestepoch_file = os.path.join(save_dir,'bestepoch_%s.pt' %(suffix))
+    lastepoch_file = os.path.join(output_dir,'lastepoch.pt' %(suffix))
+    bestepoch_file = os.path.join(save_dir,'bestepoch.pt' %(suffix))
     if args.save_init:
         initalization_file = os.path.join(output_dir,"initialization_%s.pt" %(suffix))
     ### DDP: log only in main process
@@ -254,7 +254,7 @@ def main(args):
                         'epoch': epoch,
                         'model_state_dict': model_without_ddp.state_dict(),
                         'optimizer_state_dict': optimizer.state_dict(),
-                        'scheduler': scheduler.state_dict(),
+                        'scheduler_state_dict': scheduler.state_dict(),
                         'best_testprec1': best_testprec1,
                         }, bestepoch_file)
 
@@ -287,7 +287,7 @@ def main(args):
                         'epoch': epoch,
                         'model_state_dict': model_without_ddp.state_dict(),
                         'optimizer_state_dict': optimizer.state_dict(),
-                        'scheduler': scheduler.state_dict(),
+                        'scheduler_state_dict': scheduler.state_dict(),
                         'best_testprec1': best_testprec1,
                         }, bestepoch_file)
     
