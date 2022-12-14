@@ -52,7 +52,8 @@ default_cfg={
     },
     "training": {
         "resume": False,
-        "resume_checkpoint": os.path.join("save","CIFAR10",'checkpoint.pt'),
+        "checkpoint_folder": os.path.join("save","CIFAR10"),
+        "checkpoint_file": None,
         "opt": 'sgd',
         "epochs": 200,
         "print_freq": 5000,
@@ -74,7 +75,8 @@ def parser_add_arguments(parser):
 
     parser.add_argument('--seed', default=-1, type=int, help='random seed (default -1)')
     parser.add_argument('--resume', default=False, action='store_true',  help='resume from checkpoint (default: False)')
-    parser.add_argument('--resume-checkpoint', default=default_cfg['training']['resume_checkpoint'], help='checkpoint file name to resume from -- ignored if resume is False')
+    parser.add_argument('--checkpoint_folder', default=default_cfg['training']['checkpoint_folder'], help='checkpoint folder name to resume from or to validate on in validate_only.py (ignored by main.py if resume is False).')
+    parser.add_argument('--checkpoint_file', default=default_cfg['training']['checkpoint_file'], help='checkpoint filename within checkpoint folderto resume from or to validate on in validate_only.py (ignored by main.py if resume is False).')
     parser.add_argument('--save_init', default=False, action='store_true', help='flag to save initialization of model parameters (default: False)')
     parser.add_argument('--disable-tensorboard', default=False, action='store_true', help='flag to skip logging into tensorboard')
 
@@ -133,7 +135,7 @@ def parser_add_arguments(parser):
     parser.add_argument('--sched', default='cosine', type=str, help='LR scheduler (default: "cosine")')
     parser.add_argument('--warmup-lr', type=float, default=1e-6, help='warmup learning rate (default: 1e-6)')
     parser.add_argument('--min-lr', type=float, default=1e-5, help='lower lr bound for cyclic schedulers that hit 0 (default: 1e-5)')
-    parser.add_argument('--warmup-epochs', type=int, default=20, help='epochs to warmup LR, if scheduler supports (default: 20 for non-imagenet, for imagenet, warmup is fixed to 1 epoch! )')
+    parser.add_argument('--warmup-epochs', type=int, default=20, help='epochs to warmup LR, if scheduler supports (default: 20 for non-imagenet, for imagenet, warmup is fixed to 5 epoch! )')
     parser.add_argument('--cooldown-epochs', type=int, default=0, help='epochs to cooldown LR at min_lr, after cyclic schedule ends (default: 0)')
     parser.add_argument('--decay-epochs', default = 100000, type=float, help='epoch interval to decay LR for step-like schedules (default: args.epochs)')
     parser.add_argument('--decay-rate', '--dr', default=0, type=float, help='LR decay rate for step-like schedules (default: 0.1)')

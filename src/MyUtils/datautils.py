@@ -189,9 +189,12 @@ def get_imagenet_data_cfg(suffix, args):
             ratio = tuple((3./4., 4./3.))  # default imagenet ratio range
             basic_data_augmentation_transforms = [transforms.RandomResizedCrop(im_dim, scale=scale, ratio=ratio), transforms.RandomHorizontalFlip()]
             train_resize_transforms = []
+            suffix = suffix +"_SA"
         elif args.basic_augmentation:
             basic_data_augmentation_transforms = [transforms.RandomCrop(im_dim), transforms.RandomHorizontalFlip()]
+            suffix = suffix +"_BA"
         else:
+            # AA no BA
             basic_data_augmentation_transforms = [transforms.CenterCrop(im_dim), transforms.RandomHorizontalFlip()]
             aa_config_string = aa_config_string+'-sh0'
 
@@ -205,7 +208,7 @@ def get_imagenet_data_cfg(suffix, args):
         else:
             rand_augmentation_transforms = []
             re_transform = []
-            suffix = suffix +"_DA"
+            
             
         transforms_list = train_resize_transforms\
             + rand_augmentation_transforms\

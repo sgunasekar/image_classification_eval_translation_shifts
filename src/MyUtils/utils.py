@@ -1,3 +1,4 @@
+import os
 import random
 
 import numpy as np
@@ -107,12 +108,13 @@ def accuracy(output, target, topk=(1,)):
 
 def load_checkpoint(args, model_without_ddp, optimizer, scheduler, loss_scaler):
 
-    checkpoint_file = args.resume_checkpoint
-    if checkpoint_file is None:
-        print("Warning: 'cfg[training][resume]' is set to True but no valid checkpoint file provided:ignoring resume flag")
+    checkpoint_folder = args.checkpoint_folder
+    checkpoint_file = args.checkpoint_file
+    if checkpoint_file is None or checkpoint_folder is None:
+        print("Warning: 'cfg[training][resume]' is set to True but no valid checkpoint file or checkpoint folder provided:ignoring resume flag")
         args.resume = False
     else:
-        checkpoint = torch.load(checkpoint_file,map_location='cpu')
+        checkpoint = torch.load(os.path.join(checkpoint_folder, checkpoint_file), map_location='cpu')
 
         model_without_ddp.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
