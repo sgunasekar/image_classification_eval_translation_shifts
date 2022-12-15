@@ -4,6 +4,7 @@ import logging
 vgg_prefixes = ("vgg")
 mlp_prefixes = ("mixer","resmlp")
 resnet_prefixes = ("resnet", "resnext", "wide_resnet", "preact")
+resnet_bit_prefixes = ("BiT")
 antialiased_resnet_prefixes = ("antialiased_resnet", "antialiased_resnext", "antialiased_wide_resnet")
 vit_prefixes = ("deit", "vit", "cait")
 
@@ -43,7 +44,22 @@ def get_model_cfg(args):
             model_name = 'resnet18'
 
         model_cfg['model_name'] = model_name
+    
+    elif model_name.startswith(resnet_bit_prefixes):
         
+        from models.resnet_bit import BiT_ResNet, default_bit_resnet_cfg, layers_bit_resnet_cfg 
+        Net = BiT_ResNet
+        model_cfg = default_bit_resnet_cfg.copy()
+        layers_cfg = layers_bit_resnet_cfg
+
+        if model_name in layers_cfg.keys():
+            model_cfg['layers']=layers_cfg[model_name]
+        else:
+            logging.warning(f"Model name {model_name} is not a valid key for layers_cfg. Using default BiT_R50x1")
+            model_name = 'BiT_R50x1'
+
+        model_cfg['model_name'] = model_name
+    
     elif model_name.startswith(antialiased_resnet_prefixes):
         
         from models.antialiased_resnet import (AntiAliased_ResNet,
