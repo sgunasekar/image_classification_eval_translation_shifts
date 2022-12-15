@@ -128,9 +128,7 @@ def get_model_cfg(args):
         logging.warn("get_model got a string argument. In this case, the corresponding default model_cfg is returned. If relevant, confirm if batchnorm/dropout/drop_path parameters are updated elsewhere.")
         return model_cfg, model_name
 
-    if not(args.model.startswith(resnet_prefixes)):
-        print("Note: Ignoring groupnorm and batchnorm arguments for non-resne(x)t models")
-    elif args.groupnorm:
+    if args.groupnorm:
         model_cfg['groupnorm'] = True
     elif args.batchnorm:
         model_cfg['batchnorm'] = True
