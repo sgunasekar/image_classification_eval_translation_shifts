@@ -57,7 +57,7 @@ default_cfg={
         "opt": 'sgd',
         "epochs": 200,
         "print_freq": 5000,
-        "eval_epoch_freq": 10,
+        "eval_epoch_freq": 1,
         "num_workers": 8,
         "batch_size": 128,
         "lr": 0.1,
