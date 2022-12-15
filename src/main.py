@@ -71,8 +71,8 @@ def main(args):
 
     suffix = suffix+"_se%d" %args.seed
 
-    lastepoch_file = os.path.join(output_dir,'lastepoch.pt' %(suffix))
-    bestepoch_file = os.path.join(save_dir,'bestepoch.pt' %(suffix))
+    lastepoch_file = os.path.join(output_dir,'lastepoch.pt')
+    bestepoch_file = os.path.join(save_dir,'bestepoch.pt')
     if args.save_init:
         initalization_file = os.path.join(output_dir,"initialization_%s.pt" %(suffix))
     ### DDP: log only in main process

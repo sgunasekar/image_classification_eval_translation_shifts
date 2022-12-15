@@ -70,7 +70,7 @@ class PreActBottleneck(nn.Module):
         super().__init__()
         cout = cout or cin
         cmid = cmid or cout//4
-        weight_standardization = isinstance(norm_layer,nn.GroupNorm)
+        weight_standardization = issubclass(norm_layer,nn.GroupNorm)
 
         self.gn1 = norm_layer(cin)
         self.conv1 = conv1x1(cin, cmid, weight_standardization=weight_standardization)
@@ -123,7 +123,7 @@ class ResNetV2(nn.Module):
 
         # The following will be unreadable if we split lines.
         # pylint: disable=line-too-long
-        if isinstance(norm_layer, nn.GroupNorm):
+        if issubclass(norm_layer, nn.GroupNorm):
             conv0  = StdConv2d(3, 64*wf, kernel_size=7, stride=2, padding=3, bias=False)
         else:
             conv0 = nn.Conv2d(3, 64*wf, kernel_size=7, stride=2, padding=3, bias=False)
@@ -184,15 +184,17 @@ class ResNetV2(nn.Module):
             for bname, block in self.body.named_children():
                 for uname, unit in block.named_children():
                     unit.load_from(weights, prefix=f'{prefix}{bname}/{uname}/')
+    
+    
 
 
 layers_bit_resnet_cfg = OrderedDict([
-    ('BiT_R50x1', lambda *a, **kw: ResNetV2([3, 4, 6, 3], 1, *a, **kw)),
-    ('BiT_R50x3', lambda *a, **kw: ResNetV2([3, 4, 6, 3], 3, *a, **kw)),
-    ('BiT_R101x1', lambda *a, **kw: ResNetV2([3, 4, 23, 3], 1, *a, **kw)),
-    ('BiT_R101x3', lambda *a, **kw: ResNetV2([3, 4, 23, 3], 3, *a, **kw)),
-    ('BiT_R152x2', lambda *a, **kw: ResNetV2([3, 8, 36, 3], 2, *a, **kw)),
-    ('BiT_R152x4', lambda *a, **kw: ResNetV2([3, 8, 36, 3], 4, *a, **kw)),
+    ('BiT_R50x1', ([3, 4, 6, 3], 1)),
+    ('BiT_R50x3', ([3, 4, 6, 3], 3)),
+    ('BiT_R101x1', ([3, 4, 23, 3], 1)),
+    ('BiT_R101x3', ([3, 4, 23, 3], 3)),
+    ('BiT_R152x2', ([3, 8, 36, 3], 2)),
+    ('BiT_R152x4', ([3, 8, 36, 3], 4)),
 ])
 
 default_bit_resnet_cfg = {
@@ -202,7 +204,7 @@ default_bit_resnet_cfg = {
     'layers': layers_bit_resnet_cfg['BiT_R50x1'],
     'resize': True,
     'batchnorm': False,
-    'groupnorm': True,
+    'groupnorm': False,
     'layernorm': False,
     'patchify': False,
     'trunc_normal_init': False,
@@ -210,15 +212,28 @@ default_bit_resnet_cfg = {
 
 class BiT_ResNet(ResNetV2):
 
-    def __init__(self, model_cfg=default_bit_resnet_cfg, init_weights=True) -> None:
+    def __init__(self, model_cfg=default_bit_resnet_cfg) -> None:
 
         num_classes = model_cfg.get('num_classes',default_bit_resnet_cfg['num_classes'])
-        model_init_fn = model_cfg.get('layers',default_bit_resnet_cfg['layers'])
+        layers = model_cfg.get('layers',default_bit_resnet_cfg['layers'])
 
         if model_cfg['groupnorm']:
             norm_layer = GroupNormPartialWrapper
         elif model_cfg['batchnorm']:
             norm_layer = nn.BatchNorm2d
         
-        model_init_fn(head_size=num_classes, zero_head=False, norm_layer = norm_layer)
+        super(BiT_ResNet, self).__init__(*layers, head_size=num_classes, zero_head=False, norm_layer = norm_layer)
 
+        if not(model_cfg.get('trunc_normal_init', False)):
+            self._initialize_weights()
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.GroupNorm):
+                nn.init.constant_(m.weight, 1)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
