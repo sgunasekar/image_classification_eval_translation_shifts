@@ -105,9 +105,10 @@ def parser_add_arguments(parser):
 
     ## Model args
     group2 = parser.add_mutually_exclusive_group()
-    group2.add_argument('--batchnorm', '--bn', default=False, action='store_true', dest='batchnorm', help='flag to use batch normalization in convnets (default: False)')
-    group2.add_argument('--groupnorm','--gn', default=False, action='store_true', dest='groupnorm', help='flag to use batch normalization in convnets (default: False)')
-
+    group2.add_argument('--batchnorm', '--bn', default=False, action='store_true', dest='batchnorm', help='flag to use batch normalization in convnets. Specify at most one of --bn, --gn, --ln. Note that non-convnet models always use layernorm. (default: False)')
+    group2.add_argument('--groupnorm','--gn', default=False, action='store_true', dest='groupnorm', help='flag to use group normalization + weight standardization in convnets. Specify at most one of --bn, --gn, --ln. Note that non-convnet models always use layernorm. (default: False)')
+    group2.add_argument('--layernorm','--ln', default=False, action='store_true', dest='layernorm', help='flag to use batch normalization in convnets. Specify at most one of --bn, --gn, --ln. Note that non-convnet models always use layernorm. (default: False)')
+    parser.add_argument('--patchify', default=False, action='store_true', help='flag to use patchify stem in BiT ResNet models.')
     parser.add_argument('--dropout', '--do', type=float, help='dropout rate if relevant for model (See defaults in aplicable models.default_<model>_config)')
     parser.add_argument('--drop-path', '--so', type=float, help='stochastic depth rate if relevant for model (See defaults in aplicable models.default_<model>_config)')
     parser.add_argument('--resize', action='store_true', help='resize images to 224x224 (default:True)')

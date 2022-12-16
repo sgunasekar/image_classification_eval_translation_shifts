@@ -132,6 +132,10 @@ def get_model_cfg(args):
         model_cfg['groupnorm'] = True
     elif args.batchnorm:
         model_cfg['batchnorm'] = True
+    elif args.layernorm:
+        model_cfg['layernorm'] = True
+    if args.patchify:
+        model_cfg['patchify'] = True
 
     #print(args.dropout,args.drop_path, args.resize)
 

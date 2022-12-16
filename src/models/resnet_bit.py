@@ -210,6 +210,9 @@ default_bit_resnet_cfg = {
     'trunc_normal_init': False,
 }
 
+from timm.models.layers import LayerNorm2d 
+# torch LayerNorm normalizes over the last dimension(s) 
+# for the CHW format to get layernorm over channels, timm norm 
 class BiT_ResNet(ResNetV2):
 
     def __init__(self, model_cfg=default_bit_resnet_cfg) -> None:
@@ -221,8 +224,24 @@ class BiT_ResNet(ResNetV2):
             norm_layer = GroupNormPartialWrapper
         elif model_cfg['batchnorm']:
             norm_layer = nn.BatchNorm2d
-        
+        elif model_cfg['layernorm']:
+            norm_layer = LayerNorm2d
+        else:
+            norm_layer = None
+
         super(BiT_ResNet, self).__init__(*layers, head_size=num_classes, zero_head=False, norm_layer = norm_layer)
+
+        if model_cfg.get('patchify', False):
+            wf = layers[1]
+            if issubclass(norm_layer, nn.GroupNorm):
+                conv0  = StdConv2d(3, 64*wf, kernel_size=4, stride=4, bias=False)
+            else:
+                conv0 = nn.Conv2d(3, 64*wf, kernel_size=4, stride=4, padding=3, bias=False)
+            norm0 = norm_layer(64*wf)
+            self.root = nn.Sequential(OrderedDict([
+                ('conv', conv0),
+                ('norm', norm0)
+            ]))
 
         if not(model_cfg.get('trunc_normal_init', False)):
             self._initialize_weights()
