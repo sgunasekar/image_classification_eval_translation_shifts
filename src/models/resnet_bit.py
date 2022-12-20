@@ -21,6 +21,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
+from timm.models.layers import trunc_normal_
 
 class GroupNormPartialWrapper(nn.GroupNorm):
     # NOTE num_channel and num_groups order flipped for easier layer swaps / binding of fixed args
@@ -243,13 +244,15 @@ class BiT_ResNet(ResNetV2):
                 ('norm', norm0)
             ]))
 
-        if not(model_cfg.get('trunc_normal_init', False)):
-            self._initialize_weights()
+        self._initialize_weights(trunc_normal=model_cfg.get('trunc_normal_init', False))
 
-    def _initialize_weights(self):
+    def _initialize_weights(self, trunc_normal = False):
         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            if isinstance(m, (nn.Conv2d, nn.Linear)):
+                if not(trunc_normal):
+                    nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                else:
+                    trunc_normal_(m.weight, std=.02)
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
             elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.GroupNorm):

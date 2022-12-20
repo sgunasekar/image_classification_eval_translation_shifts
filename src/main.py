@@ -60,6 +60,8 @@ def main(args):
     train_kwargs = {}
     train_kwargs['num_classes'] = model_cfg['num_classes']
     train_kwargs, suffix = get_train_kwargs(train_kwargs, args, suffix)
+    if args.opt.lower() == 'adamw':
+        model_cfg['trunc_normal_init'] = True
 
     ## Setup directories and files
     data_cfg['root'] = os.environ.get('DATA_DIR', default_cfg[dataset]['root'])
