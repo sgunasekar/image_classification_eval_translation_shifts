@@ -7,12 +7,11 @@ from timm.models.vision_transformer import VisionTransformer
 
 ### ViT
 layers_vit_cfg = {
-    'deit_tiny':{'distilled':True, 'embed_dim':192, 'depth':12, 'num_heads':3},
-    'deit_small':{'distilled':True, 'embed_dim':384, 'depth':12, 'num_heads':6},
-    'deit_base':{'distilled':True, 'embed_dim':768, 'depth':12, 'num_heads':12},
-    'vit_tiny':{'distilled':False, 'embed_dim':192, 'depth':12, 'num_heads':3},
-    'vit_small':{'distilled':False, 'embed_dim':384, 'depth':12, 'num_heads':6},
-    'vit_base':{'distilled':False, 'embed_dim':768, 'depth':12, 'num_heads':12},
+    'vit_tiny':{'embed_dim':192, 'depth':12, 'num_heads':3},
+    'vit_small':{'embed_dim':384, 'depth':12, 'num_heads':6},
+    'vit_base':{'embed_dim':768, 'depth':12, 'num_heads':12},
+    'vit_large': {'embed_dim':1024, 'depth':24, 'num_heads':16},
+    'vit_huge': {'patch_size':14, 'embed_dim':1280, 'depth':32, 'num_heads':16},
     'cait_xxs24': dict(embed_dim=192, depth=24, num_heads=4, init_values=1e-5, drop_path=0.05),
     'cait_xxs36': dict(embed_dim=192, depth=36, num_heads=4, init_values=1e-5),
     'cait_xs24': dict(embed_dim=288, depth=24, num_heads=6, init_values=1e-5, drop_path=0.05),

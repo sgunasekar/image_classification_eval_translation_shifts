@@ -214,6 +214,7 @@ default_bit_resnet_cfg = {
 from timm.models.layers import LayerNorm2d 
 # torch LayerNorm normalizes over the last dimension(s) 
 # for the CHW format to get layernorm over channels, timm norm 
+# TODO: super slow, get better implementation of CHW layer norm
 class BiT_ResNet(ResNetV2):
 
     def __init__(self, model_cfg=default_bit_resnet_cfg) -> None:
