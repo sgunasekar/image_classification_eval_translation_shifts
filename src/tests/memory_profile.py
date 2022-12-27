@@ -4,12 +4,12 @@ import os
 import sys
 
 import torch
-import torch.nn as nn
-from torch.profiler import profile, record_function, ProfilerActivity, tensorboard_trace_handler
 import torch.cuda
-
-from torch.cuda.amp import GradScaler
+import torch.nn as nn
 from timm.optim import create_optimizer
+from torch.cuda.amp import GradScaler
+from torch.profiler import (ProfilerActivity, profile, record_function,
+                            tensorboard_trace_handler)
 
 logger = logging.getLogger()
 log_file = os.path.join('log' ,f"memory_profiling_logs.log")
@@ -27,11 +27,13 @@ def single_update(X, y, model, optimizer, loss_scaler=None, criterion=nn.CrossEn
 
     X = X.to(device, non_blocking=True)
     y = y.to(device, non_blocking=True)
+
     model = model.to(device)
 
     optimizer.zero_grad()
     with record_function("forward pass"):
         with torch.cuda.amp.autocast(enabled=(loss_scaler is not None)):
+
             output = model(X)
             loss = criterion(output, y)
     with record_function("backward pass"):
@@ -43,14 +45,9 @@ def single_update(X, y, model, optimizer, loss_scaler=None, criterion=nn.CrossEn
             loss_scaler.step(optimizer)
             loss_scaler.update()
             
-def profile_single_update(batch_size, model, optimizer, loss_scaler, folder_name="test"):
+def profile_single_update(batch_size, model, optimizer, loss_scaler, config_str="test"):
     
-    print("Setup...")
-    print(f"Loss scaler={loss_scaler}, batch_size={batch_size},")
-    number_trainable_parameters = sum(param.numel() for param in model.parameters() if param.requires_grad)
-    print(f"Model: {model_name}, no. of trainable parameters={number_trainable_parameters}")
 
-    print(f"Optimizer: {optimizer}")
     
     wait = 1
     warmup = 1
@@ -62,7 +59,7 @@ def profile_single_update(batch_size, model, optimizer, loss_scaler, folder_name
         active=active, repeat=repeat),
         activities = [ProfilerActivity.CPU, ProfilerActivity.CUDA],
         profile_memory=True,
-        on_trace_ready=tensorboard_trace_handler(os.path.join('log', folder_name))) as prof:
+        on_trace_ready=tensorboard_trace_handler(os.path.join('log', config_str))) as prof:
         
         for i in range(num_steps):
 
@@ -74,7 +71,7 @@ def profile_single_update(batch_size, model, optimizer, loss_scaler, folder_name
                 single_update(X, y, model, optimizer, loss_scaler=loss_scaler)
                 peak = torch.cuda.max_memory_allocated()                
                 if i == wait+warmup+active//2: 
-                    logger.info(f"Peak memory of {folder_name} = {peak/(10**9)}")
+                    logger.info(f"Peak memory of {config_str} = {peak/(10**9)}")
 
             prof.step()
 
@@ -112,13 +109,22 @@ if __name__ == '__main__':
                 model_cfg['num_classes'] = 1000
                 model_cfg['in_channels'] = 3
                 print("Model cfg:", model_cfg)
-                model = Net(model_cfg)
+                model = Net(model_cfg).vit_model # REPLACE with custom model
 
                 # define optimizer
-                optimizer = create_optimizer(args=opt_args[opt_key], model=model)
+                optimizer = create_optimizer(args=opt_args[opt_key], model=model) # REPLACE with custom optimizer
 
+                print("Setup...")
+                print(f"Loss scaler={loss_scaler}")
+                number_trainable_parameters = sum(param.numel() for param in model.parameters() if param.requires_grad)
+                print(f"Model: {model_name}, no. of trainable parameters={number_trainable_parameters}")
+                print(f"Optimizer: {opt_key}")
+                
                 for batch_size in [1,4,16]:
                     
-                    profile_single_update(batch_size, model, optimizer, loss_scaler, folder_name=f"opt_{opt_key}_model_{model_name}_b_{batch_size}_amp_{loss_scaler is not None}")
+                    # CHK: for vit models from timm, can use set_grad_checkpointing(enable=True) for checkpointing
+                    for checkpoint in [True, False]:
 
+                        model.set_grad_checkpointing(enable=checkpoint)
 
+                        profile_single_update(batch_size, model, optimizer, loss_scaler, config_str=f"opt_{opt_key}_model_{model_name}_b_{batch_size}_checkpoint_{checkpoint}_amp_{loss_scaler is not None}")
