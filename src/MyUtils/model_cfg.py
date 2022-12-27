@@ -125,7 +125,8 @@ def get_model_cfg(args):
     model_cfg["net_class"] = Net
 
     if isinstance(args,str):
-        logging.warn("get_model got a string argument. In this case, the corresponding default model_cfg is returned. If relevant, confirm if batchnorm/dropout/drop_path parameters are updated elsewhere.")
+        if (model_name.startswith(resnet_prefixes) or model_name.startswith(resnet_bit_prefixes)):
+            logging.warning("get_model got a string argument. In this case, the corresponding default model_cfg is returned. If relevant, confirm if batchnorm/dropout/drop_path parameters are updated elsewhere.")
         return model_cfg, model_name
 
     if args.groupnorm:
