@@ -95,11 +95,11 @@ from MyUtils.model_cfg import get_model_cfg
 
 if __name__ == '__main__':
 
-    for loss_scaler in [None,GradScaler()]:
+    for model_name in ['vit_tiny', 'vit_small', 'vit_base', 'vit_large', 'vit_huge']:
 
-        for model_name in ['vit_tiny', 'vit_small', 'vit_base', 'vit_large', 'vit_huge']:
+        for opt_key in ['sgd','adamw','sgd_no_momentum']:
 
-            for opt_key in ['sgd','adamw','sgd_no_momentum']:
+            for loss_scaler in [None,GradScaler()]:
 
                 # define model
                 model_cfg, model_name = get_model_cfg(model_name)
